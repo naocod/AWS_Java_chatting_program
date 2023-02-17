@@ -3,29 +3,43 @@ package client;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.JScrollPane;
 import javax.swing.JList;
-import javax.swing.Icon;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
+import com.google.gson.Gson;
+
+import lombok.Data;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.SystemColor;
-
+@Data
 public class ChattingClient extends JFrame {
-
+	
+	private CardLayout mainCard;
 	private JPanel mainPanel;
 	private JTextField usernameField;
 	private JTextField messageInput;
 	
-
+	private Socket socket;
+	private Gson gson;
+	private String username;
 	/**
 	 * Launch the application.
 	 */
@@ -46,6 +60,27 @@ public class ChattingClient extends JFrame {
 	 * Create the frame.
 	 */
 	public ChattingClient() {
+		
+		gson = new Gson();
+		
+		try {
+			socket = new Socket("127.0.0.1", 9090);
+			JOptionPane.showMessageDialog(null, 
+					socket.getInetAddress() + "서버 접속", 
+					"접속성공", 
+					JOptionPane.INFORMATION_MESSAGE);
+		} catch (ConnectException e1) {
+			JOptionPane.showMessageDialog(null, 
+					"서버 접속 실패", 
+					"접속실패", 
+					JOptionPane.ERROR_MESSAGE);
+			
+		} catch (UnknownHostException e2) {
+			e2.printStackTrace();
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 480, 800);
 		
@@ -73,12 +108,38 @@ public class ChattingClient extends JFrame {
 		loginPanel.add(kakaoIcon);
 		
 		usernameField = new JTextField();
+		usernameField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+			}
+		});
 		usernameField.setBounds(89, 453, 300, 42);
 		loginPanel.add(usernameField);
 		usernameField.setColumns(10);
 		
 		ImageIcon login_icon = new ImageIcon(getClass().getResource("/icon/kakao_login_medium_wide.png"));
 		JButton loginButton = new JButton(login_icon);
+		loginButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					socket = new Socket("127.0.0.1", 9090);
+					
+					mainCard.show(mainPanel, "chatListPanel");
+					
+				} catch (UnknownHostException e1) {
+					
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					
+					e1.printStackTrace();
+				}
+				
+				
+			}
+		});
+		
 		loginButton.setBorder(BorderFactory.createLineBorder(Color.gray));
 		loginButton.setBounds(89, 512, 300, 42);
 		loginPanel.add(loginButton);
@@ -129,8 +190,13 @@ public class ChattingClient extends JFrame {
 		messageScroll.setViewportView(messageInput);
 		messageInput.setColumns(10);
 		
-		ImageIcon sendMsgImg = new ImageIcon(getClass().getResource("/icon/sendMsg.png"));
+		ImageIcon sendMsgImg = new ImageIcon(getClass().getResource("/icon/msg_put.png"));
 		JButton sendButton = new JButton(sendMsgImg);
+//		sendButton.setBorderPainted(false);
+		sendButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
 		sendButton.setBackground(new Color(255, 255, 255));
 		sendButton.setBounds(398, 679, 66, 82);
 		chatPanel.add(sendButton);
