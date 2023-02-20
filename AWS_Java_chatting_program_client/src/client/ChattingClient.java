@@ -3,16 +3,20 @@ package client;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -27,8 +31,6 @@ import javax.swing.JTextField;
 import com.google.gson.Gson;
 
 import lombok.Data;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 @Data
 public class ChattingClient extends JFrame {
 	
@@ -37,9 +39,13 @@ public class ChattingClient extends JFrame {
 	private JTextField usernameField;
 	private JTextField messageInput;
 	
+	private JList<String> chatList;
+	private DefaultListModel<String> chattingListModel;
+
 	private Socket socket;
 	private Gson gson;
 	private String username;
+	private String chatListName;
 	/**
 	 * Launch the application.
 	 */
@@ -95,7 +101,9 @@ public class ChattingClient extends JFrame {
 		mainPanel.setBorder(null);
 
 		setContentPane(mainPanel);
-		mainPanel.setLayout(new CardLayout(0, 0));
+		mainCard = new CardLayout();//mainCard 생성
+		mainPanel.setLayout(mainCard);
+		
 		
 		JPanel loginPanel = new JPanel();
 		loginPanel.setBackground(new Color(255, 235, 0));
@@ -111,7 +119,9 @@ public class ChattingClient extends JFrame {
 		usernameField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				
+				if(e.getKeyCode()==KeyEvent.VK_ENTER) {
+					mainCard.show(mainPanel, "chatListPanel");
+				}
 			}
 		});
 		usernameField.setBounds(89, 453, 300, 42);
@@ -123,19 +133,18 @@ public class ChattingClient extends JFrame {
 		loginButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				
+				ClientRecive clientRecive = new ClientRecive(socket);
+				clientRecive.start();
+				
 				try {
-					socket = new Socket("127.0.0.1", 9090);
+					OutputStream outputStream = socket.getOutputStream();
 					
-					mainCard.show(mainPanel, "chatListPanel");
-					
-				} catch (UnknownHostException e1) {
-					
-					e1.printStackTrace();
 				} catch (IOException e1) {
-					
 					e1.printStackTrace();
 				}
 				
+				mainCard.show(mainPanel, "chatListPanel"); //chatListPanel로 화면전환
 				
 			}
 		});
@@ -147,16 +156,14 @@ public class ChattingClient extends JFrame {
 		JPanel chatListPanel = new JPanel();
 		chatListPanel.setBackground(new Color(255, 235, 0));
 		chatListPanel.setForeground(new Color(0, 0, 0));
-		mainPanel.add(chatListPanel, "name_1471051908969100");
+		mainPanel.add(chatListPanel, "chatListPanel");
 		chatListPanel.setLayout(null);
 		
 		JScrollPane chatListScroll = new JScrollPane();
 		chatListScroll.setBounds(98, 0, 366, 761);
 		chatListPanel.add(chatListScroll);
 		
-		JList chatList = new JList();
-		chatList.setBorder(null);
-		chatListScroll.setViewportView(chatList);
+
 		
 		ImageIcon panelIcon2 = new ImageIcon(getClass().getResource("/icon/kakaotalk_sharing_btn_medium2.png"));
 		JLabel kakaoIcon2 = new JLabel(panelIcon2);
@@ -165,6 +172,13 @@ public class ChattingClient extends JFrame {
 		
 		ImageIcon plus_icon = new ImageIcon(getClass().getResource("/icon/plus_icon.png"));
 		JButton btnNewButton = new JButton(plus_icon);
+		btnNewButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				chatListName = JOptionPane.showInputDialog(null, "방의 제목을 입력하시오.", "방 생성", JOptionPane.INFORMATION_MESSAGE);
+				
+			}
+		});
 		btnNewButton.setBackground(new Color(255, 255, 0));
 		btnNewButton.setBounds(33, 110, 31, 31);
 		chatListPanel.add(btnNewButton);
@@ -172,12 +186,20 @@ public class ChattingClient extends JFrame {
 		
 		JPanel chatPanel = new JPanel();
 		chatPanel.setBackground(new Color(255, 235, 0));
-		mainPanel.add(chatPanel, "name_1471172583665600");
+		mainPanel.add(chatPanel, "chatPanel");
 		chatPanel.setLayout(null);
 		
 		JScrollPane chatScroll = new JScrollPane();
 		chatScroll.setBounds(0, 81, 464, 599);
 		chatPanel.add(chatScroll);
+		
+//		JList chatList = new JList();
+//		chatList.setBorder(null);
+//		chatListScroll.setViewportView(chatList);
+		
+		chattingListModel = new DefaultListModel<>();
+		chatList = new JList<String>(chattingListModel);
+		chatScroll.setViewportView(chatList); // 방리스트
 		
 		JTextArea chatView = new JTextArea();
 		chatScroll.setViewportView(chatView);
