@@ -1,5 +1,5 @@
 package Dto;
 
-public class MessageReq {
+public class MessageReqDto {
 
 }

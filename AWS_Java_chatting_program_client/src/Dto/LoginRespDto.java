@@ -1,12 +1,12 @@
 package Dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class RequestDto {
-	private String resource;
-	private String body;
-
+public class LoginRespDto {
+	private List<String> connectedUsers;
 }
