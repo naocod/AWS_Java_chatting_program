@@ -36,11 +36,7 @@ class ConnectedSocket extends Thread{
 		try {
 			inputStream = socket.getInputStream();
 			BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-			
-			while(true) {
-				String request = in.readLine();	// requestDto(JSON)
-				
-			}
+			   
 			
 		} catch (IOException e) {
 			e.printStackTrace();
