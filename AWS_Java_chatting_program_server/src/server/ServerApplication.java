@@ -22,6 +22,7 @@ import Dto.MessageReqDto;
 import Dto.MessageRespDto;
 import Dto.RequestDto;
 import Dto.ResponseDto;
+import Dto.RoomReqDto;
 import lombok.Data;
 
 @Data
@@ -34,7 +35,7 @@ class ConnectedSocket extends Thread{
 	private InputStream inputStream;
 	private Gson gson;
 	
-	private String username, roomname;
+	private String username, roomTitle;
 	
 	public ConnectedSocket(Socket socket) {
 		this.socket = socket;
@@ -114,11 +115,11 @@ class ConnectedSocket extends Thread{
 					// username 공백검사 || 중복검사
 					if (username == null || username.isEmpty() || userList.contains(username)) {
 						System.out.println("Username already exists");
-						ResponseDto responseDto = new ResponseDto(requestDto.getResource(), "no", null);
+						ResponseDto usernameResponseDto = new ResponseDto(requestDto.getResource(), "no", null);
 						try {
 							outputStream = socket.getOutputStream();
 							PrintWriter out = new PrintWriter(outputStream, true);
-							out.println(gson.toJson(responseDto));
+							out.println(gson.toJson(usernameResponseDto));
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -141,7 +142,39 @@ class ConnectedSocket extends Thread{
 					break;
 
 
+				case "createRoom":
+					RoomReqDto roomReqDto = gson.fromJson(requestDto.getBody(), RoomReqDto.class);
+					System.out.println(roomReqDto);
+					roomTitle = roomReqDto.getRoomTitle();
+					
+					// roomTitle 공백검사 || 중복검사
+					if (roomTitle == null || roomTitle.isEmpty() || roomList.contains(roomTitle)) {
+						System.out.println("RoomTitle already exists");
+						ResponseDto roomResponseDto = new ResponseDto(requestDto.getResource(), "no", null);
+						try {
+							outputStream = socket.getOutputStream();
+							PrintWriter out = new PrintWriter(outputStream, true);
+							out.println(gson.toJson(roomResponseDto));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						return;
+					}
 
+					// username > userList에 추가
+					roomList.add(roomTitle);
+
+					ResponseDto roomResponseDto = new ResponseDto(requestDto.getResource(), "ok", gson.toJson(null));
+					try {
+						outputStream = socket.getOutputStream();
+						PrintWriter out = new PrintWriter(outputStream, true);
+						out.println(gson.toJson(roomResponseDto));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					System.out.println(roomTitle + "방이 생성되었습니다.");
+					break;
 
 //					case "join":
 //						JoinReqDto joinReqDto = gson.fromJson(requestDto.getBody(), JoinReqDto.class);
