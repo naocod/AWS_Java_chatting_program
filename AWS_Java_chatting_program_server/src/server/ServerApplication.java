@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -55,38 +56,92 @@ class ConnectedSocket extends Thread{
 				RequestDto requestDto = gson.fromJson(request, RequestDto.class);
 				
 				switch(requestDto.getResource()) {
-					case "login":
-						LoginReqDto loginReqDto = gson.fromJson(requestDto.getBody(), LoginReqDto.class);
-						System.out.println(loginReqDto);
-						username = loginReqDto.getUsername();
+//					case "login":
+//						LoginReqDto loginReqDto = gson.fromJson(requestDto.getBody(), LoginReqDto.class);
+//						System.out.println(loginReqDto);
+//						username = loginReqDto.getUsername();
+//
+//						
+//						List<String> connectedUsers = new ArrayList<>();
+//					    boolean isUsernameDuplicated = false;
+//					    
+//					    for(String name : userList) {
+//					        if(name.equals(username)) {
+//					            isUsernameDuplicated = true;
+//					            break;
+//					        }
+//					        connectedUsers.add(name);
+//					    }
+//					    
+//					    // username 중복일 경우
+//					    if (isUsernameDuplicated) {
+//					    	System.out.println("이미 존재하는 이름");
+//					    	 ResponseDto responseDto = new ResponseDto(requestDto.getResource(), "no", null);
+//					        for(ConnectedSocket connectedSocket : socketList) {
+//						    	System.out.println(connectedSocket);
+//						    	System.out.println(username);
+//						    	if(connectedSocket.getInputStream().equals(inputStream)) {
+//									OutputStream outputStream = connectedSocket.getSocket().getOutputStream();
+//									PrintWriter out = new PrintWriter(outputStream, true);
+//									
+//									out.println(gson.toJson(responseDto));
+//								}
+//							}
+//					        return;
+//					    }
+//					    
+//					    // username > userList에 추가
+//					    userList.add(username);
+//					    
+//					    ResponseDto responseDto = new ResponseDto(requestDto.getResource(), "ok", gson.toJson(null));
+//					    for(ConnectedSocket connectedSocket : socketList) {
+//					    	System.out.println(socketList);
+//							if(connectedSocket.getInputStream().equals(inputStream)) {
+//								OutputStream outputStream = connectedSocket.getSocket().getOutputStream();
+//								PrintWriter out = new PrintWriter(outputStream, true);
+//								
+//								out.println(gson.toJson(responseDto));
+//							}
+//						}
+//					    System.out.println(username + "님이 접속하셨습니다.");
+//					    break;
+//				    
+				case "login":
+					LoginReqDto loginReqDto = gson.fromJson(requestDto.getBody(), LoginReqDto.class);
+					System.out.println(loginReqDto);
+					username = loginReqDto.getUsername();
+					
+					// username 공백검사 || 중복검사
+					if (username == null || username.isEmpty() || userList.contains(username)) {
+						System.out.println("Username already exists");
+						ResponseDto responseDto = new ResponseDto(requestDto.getResource(), "no", null);
+						try {
+							outputStream = socket.getOutputStream();
+							PrintWriter out = new PrintWriter(outputStream, true);
+							out.println(gson.toJson(responseDto));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						return;
+					}
 
-						
-						List<String> connectedUsers = new ArrayList<>();
-					    boolean isUsernameDuplicated = false;
-					    
-					    for(String name : userList) {
-//					        String name = user;
-//					        System.out.println(username);
-//					        System.out.println(name);
-					        if(name.equals(username)) {
-					            isUsernameDuplicated = true;
-					            break;
-					        }
-					        connectedUsers.add(name);
-					    }
-					    
-					    
-					    if (isUsernameDuplicated) {
-					    	System.out.println("이미 존재하는 이름");
-					        new ResponseDto(requestDto.getResource(), "no", null);
-					        return;
-					    }
-					    
-					    userList.add(username);
-					    new ResponseDto(requestDto.getResource(), "ok", gson.toJson(null));
-					    System.out.println(username + "님이 접속하셨습니다.");
-					    break;
-				    
+					// username > userList에 추가
+					userList.add(username);
+
+					ResponseDto responseDto = new ResponseDto(requestDto.getResource(), "ok", gson.toJson(null));
+					try {
+						outputStream = socket.getOutputStream();
+						PrintWriter out = new PrintWriter(outputStream, true);
+						out.println(gson.toJson(responseDto));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					System.out.println(username + "님이 접속하셨습니다.");
+					break;
+
+
+
 
 //					case "join":
 //						JoinReqDto joinReqDto = gson.fromJson(requestDto.getBody(), JoinReqDto.class);

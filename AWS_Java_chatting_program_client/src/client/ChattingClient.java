@@ -9,7 +9,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ConnectException;
@@ -33,6 +35,7 @@ import com.google.gson.Gson;
 
 import Dto.LoginReqDto;
 import Dto.RequestDto;
+import Dto.ResponseDto;
 import lombok.Getter;
 
 @Getter
@@ -55,7 +58,7 @@ public class ChattingClient extends JFrame {
    private JList<String> userList;
    private DefaultListModel<String> userListModel;
    
-   private JList<String> chatList;
+   private JList<String> roomList;
    private DefaultListModel<String> chatListModel;
 
    private Socket socket;
@@ -69,8 +72,9 @@ public class ChattingClient extends JFrame {
       EventQueue.invokeLater(new Runnable() {
          public void run() {
             try {
-               ChattingClient frame = new ChattingClient();
+               ChattingClient frame = ChattingClient.getInstance();
                frame.setVisible(true);
+               
             } catch (Exception e) {
                e.printStackTrace();
             }
@@ -81,7 +85,7 @@ public class ChattingClient extends JFrame {
    /**
     * Create the frame.
     */
-   public ChattingClient() {
+   private ChattingClient() {
       
       gson = new Gson();
       
@@ -94,7 +98,9 @@ public class ChattingClient extends JFrame {
                socket.getInetAddress() + "서버 접속", 
                "접속성공", 
                JOptionPane.INFORMATION_MESSAGE);
-         
+         System.out.println("socket test");
+
+
 
       } catch (ConnectException e1) {
          JOptionPane.showMessageDialog(null, 
@@ -137,24 +143,20 @@ public class ChattingClient extends JFrame {
       loginPanel.add(kakaoIcon);
       
       usernameField = new JTextField();
-      usernameField.addKeyListener(new KeyAdapter() {
-         @Override
-         public void keyPressed(KeyEvent e) {
-            if(e.getKeyCode()==KeyEvent.VK_ENTER) {
-               mainCard.show(mainPanel, "chatListPanel");
-            }
-         }
-      });
+//      usernameField.addKeyListener(new KeyAdapter() {
+//         @Override
+//         public void keyPressed(KeyEvent e) {
+//            if(e.getKeyCode()==KeyEvent.VK_ENTER) {
+//               mainCard.show(mainPanel, "roomListPanel");
+//            }
+//         }
+//      });
       usernameField.setBounds(89, 453, 300, 42);
       loginPanel.add(usernameField);
       usernameField.setColumns(10);
       
       ImageIcon login_icon = new ImageIcon(getClass().getResource("/icon/kakao_login_medium_wide.png"));
       JButton loginButton = new JButton(login_icon);
-      loginButton.addActionListener(new ActionListener() {
-      	public void actionPerformed(ActionEvent e) {
-      	}
-      });
       loginButton.addMouseListener(new MouseAdapter() {
     	  
     	  /**
@@ -163,15 +165,9 @@ public class ChattingClient extends JFrame {
     	  
          @Override
          public void mouseClicked(MouseEvent e) {
-
-        
-        	
-        	;
-        	
-//        	System.out.println(requestDto);
-        	
         	
             try {
+           
             	
                 // TODO : save username
             	username = usernameField.getText();
@@ -184,21 +180,27 @@ public class ChattingClient extends JFrame {
             	System.out.println(requestDto.getResource());
             	System.out.println(loginReqDtoJson);
             	
-            	ClientRecive clientRecive = new ClientRecive(socket);
-				clientRecive.start();
             	
             	OutputStream outputStream = socket.getOutputStream();
             	PrintWriter out = new PrintWriter(outputStream, true);
 				out.println(requestDtoJson);
 				
-               
-//               sendRequest("login", gson.toJson(username));
-               
+
+		         ClientRecive clientRecive = new ClientRecive(socket);
+		         clientRecive.start();
+		         
+				
+//				mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
+				
+//				if ("no".equals(responseDto.getStatus())) {
+//				    JOptionPane.showMessageDialog(null, "Username already exists", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
+//				} else {
+//				    mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
+//				}
+//				
             } catch (IOException e1) {
                e1.printStackTrace();
             }
-            
-            mainCard.show(mainPanel, "chatListPanel"); //chatListPanel로 화면전환
             
          }
       });
@@ -210,7 +212,7 @@ public class ChattingClient extends JFrame {
       JPanel roomListPanel = new JPanel();
       roomListPanel.setBackground(new Color(255, 235, 0));
       roomListPanel.setForeground(new Color(0, 0, 0));
-      mainPanel.add(roomListPanel, "chatListPanel");
+      mainPanel.add(roomListPanel, "roomListPanel");
       roomListPanel.setLayout(null);
       
       JScrollPane roomListScroll = new JScrollPane();
@@ -218,8 +220,8 @@ public class ChattingClient extends JFrame {
       roomListPanel.add(roomListScroll);
       
       chatListModel = new DefaultListModel<>();
-      chatList = new JList<String>(chatListModel);
-      roomListScroll.setViewportView(chatList); // 방리스트
+      roomList = new JList<String>(chatListModel);
+      roomListScroll.setViewportView(roomList); // 방리스트
       
 
       
@@ -301,5 +303,7 @@ public class ChattingClient extends JFrame {
 			e.printStackTrace();
 		}
 	}
+   
+   
 		
 }
