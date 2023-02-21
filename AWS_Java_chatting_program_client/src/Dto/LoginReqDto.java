@@ -5,6 +5,8 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class JoinReq {
-	private String Username;
+public class LoginReqDto {
+	private String username;
+
 }
+
