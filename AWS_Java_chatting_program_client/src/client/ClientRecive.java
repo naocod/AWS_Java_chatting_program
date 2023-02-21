@@ -42,16 +42,16 @@ public class ClientRecive extends Thread{
 						System.out.println("recive login");
 						LoginRespDto loginRespDto = gson.fromJson(responseDto.getBody(), LoginRespDto.class);
 						System.out.println(responseDto.getStatus());
-						
+
 						if(responseDto.getStatus().equalsIgnoreCase("no")) {
 							JOptionPane.showMessageDialog(null, "Username already exists", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
+
 							break;
 						} else if(responseDto.getStatus().equalsIgnoreCase("ok")) {
 							chattingClient.getMainCard().show(chattingClient.getMainPanel(), "roomListPanel");
 							break;
 						}
 						break;
-						
 					case "createRoom" :
 						System.out.println("recive create room");
 						RoomRespDto roomRespDto = gson.fromJson(responseDto.getBody(), RoomRespDto.class);

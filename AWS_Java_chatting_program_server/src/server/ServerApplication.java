@@ -113,6 +113,7 @@ class ConnectedSocket extends Thread{
 					username = loginReqDto.getUsername();
 					
 					// username 공백검사 || 중복검사
+					
 					if (username == null || username.isEmpty() || userList.contains(username)) {
 						System.out.println("Username already exists");
 						ResponseDto usernameResponseDto = new ResponseDto(requestDto.getResource(), "no", null);
@@ -123,9 +124,10 @@ class ConnectedSocket extends Thread{
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						return;
+						continue;
+//						return;
 					}
-
+					
 					// username > userList에 추가
 					userList.add(username);
 
@@ -141,7 +143,7 @@ class ConnectedSocket extends Thread{
 					System.out.println(username + "님이 접속하셨습니다.");
 					break;
 
-
+					
 				case "createRoom":
 					RoomReqDto roomReqDto = gson.fromJson(requestDto.getBody(), RoomReqDto.class);
 					System.out.println(roomReqDto);
@@ -158,7 +160,7 @@ class ConnectedSocket extends Thread{
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						return;
+						continue;
 					}
 
 					// username > userList에 추가

@@ -177,6 +177,7 @@ public class ChattingClient extends JFrame {
 
 					ClientRecive clientRecive = new ClientRecive(socket);
 					clientRecive.start();
+					
 
 //				mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
 
