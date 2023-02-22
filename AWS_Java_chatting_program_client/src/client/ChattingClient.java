@@ -65,7 +65,7 @@ public class ChattingClient extends JFrame {
 	private Socket socket;
 	private Gson gson;
 	private String username;
-	private String roomTitle;
+	private JLabel roomTitle;
 
 	/**
 	 * Launch the application.
@@ -136,14 +136,14 @@ public class ChattingClient extends JFrame {
 		loginPanel.add(kakaoIcon);
 
 		usernameField = new JTextField();
-//      usernameField.addKeyListener(new KeyAdapter() {
-//         @Override
-//         public void keyPressed(KeyEvent e) {
-//            if(e.getKeyCode()==KeyEvent.VK_ENTER) {
-//               mainCard.show(mainPanel, "roomListPanel");
-//            }
-//         }
-//      });
+      usernameField.addKeyListener(new KeyAdapter() {
+         @Override
+         public void keyPressed(KeyEvent e) {
+            if(e.getKeyCode()==KeyEvent.VK_ENTER) {
+               login();
+            }
+         }
+      });
 		usernameField.setBounds(89, 453, 300, 42);
 		loginPanel.add(usernameField);
 		usernameField.setColumns(10);
@@ -158,39 +158,7 @@ public class ChattingClient extends JFrame {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-
-				try {
-
-					// TODO : save username
-					username = usernameField.getText();
-
-					LoginReqDto loginReqDto = new LoginReqDto(username);
-					String loginReqDtoJson = gson.toJson(loginReqDto);
-					RequestDto requestDto = new RequestDto("login", loginReqDtoJson);
-					String requestDtoJson = gson.toJson(requestDto);
-					System.out.println(requestDto.getResource());
-					System.out.println(loginReqDtoJson);
-
-					OutputStream outputStream = socket.getOutputStream();
-					PrintWriter out = new PrintWriter(outputStream, true);
-					out.println(requestDtoJson);
-
-					ClientRecive clientRecive = new ClientRecive(socket);
-					clientRecive.start();
-					
-
-//				mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
-
-//				if ("no".equals(responseDto.getStatus())) {
-//				    JOptionPane.showMessageDialog(null, "Username already exists", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
-//				} else {
-//				    mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
-//				}
-//				
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-
+				login();
 			}
 		});
 
@@ -224,7 +192,7 @@ public class ChattingClient extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				
 				try {
-					roomTitle = JOptionPane.showInputDialog(null, "방의 제목을 입력하시오.", "방 생성", JOptionPane.INFORMATION_MESSAGE);
+					String roomTitle = JOptionPane.showInputDialog(null, "방의 제목을 입력하시오.", "방 생성", JOptionPane.INFORMATION_MESSAGE);
 					
 					RoomReqDto roomReqDto = new RoomReqDto(roomTitle);
 					String roomReqDtoJson = gson.toJson(roomReqDto);
@@ -268,14 +236,29 @@ public class ChattingClient extends JFrame {
 		chatPanel.add(messageScroll);
 
 		messageInput = new JTextField();
+		messageInput.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+					sendMessage();
+				}
+			}
+		});
 		messageScroll.setViewportView(messageInput);
 		messageInput.setColumns(10);
 
 		ImageIcon sendMsgImg = new ImageIcon(getClass().getResource("/icon/msg_put.png"));
 		JButton sendButton = new JButton(sendMsgImg);
+		sendButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+			}
+		});
 //      sendButton.setBorderPainted(false);
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				sendMessage();
 			}
 		});
 		sendButton.setBackground(new Color(255, 255, 255));
@@ -310,6 +293,42 @@ public class ChattingClient extends JFrame {
 			out.println(gson.toJson(requestDto));
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	public void sendMessage() {
+		
+	}
+	private void login() {
+		try {
+
+			// TODO : save username
+			username = usernameField.getText();
+
+			LoginReqDto loginReqDto = new LoginReqDto(username);
+			String loginReqDtoJson = gson.toJson(loginReqDto);
+			RequestDto requestDto = new RequestDto("login", loginReqDtoJson);
+			String requestDtoJson = gson.toJson(requestDto);
+			System.out.println(requestDto.getResource());
+			System.out.println(loginReqDtoJson);
+
+			OutputStream outputStream = socket.getOutputStream();
+			PrintWriter out = new PrintWriter(outputStream, true);
+			out.println(requestDtoJson);
+
+			ClientRecive clientRecive = new ClientRecive(socket);
+			clientRecive.start();
+			
+
+//		mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
+
+//		if ("no".equals(responseDto.getStatus())) {
+//		    JOptionPane.showMessageDialog(null, "Username already exists", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
+//		} else {
+//		    mainCard.show(mainPanel, "roomListPanel"); //roomListPanel로 화면전환
+//		}
+//		
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 
