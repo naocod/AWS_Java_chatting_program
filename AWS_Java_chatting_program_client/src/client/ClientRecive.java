@@ -5,16 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import com.google.gson.Gson;
 
 import Dto.LoginRespDto;
-import Dto.MessageRespDto;
 import Dto.ResponseDto;
-import Dto.RoomReqDto;
-import Dto.RoomRespDto;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor   //
@@ -52,24 +50,38 @@ public class ClientRecive extends Thread{
 							break;
 						}
 						break;
-					case "createRoom" :
-						System.out.println("recive create room");
-						RoomRespDto roomRespDto = gson.fromJson(responseDto.getBody(), RoomRespDto.class);
-						System.out.println(responseDto.getStatus());
+					case "reflshRoom":
+						List<String> roomTitleList = gson.fromJson(responseDto.getBody(), List.class);
+						chattingClient.getChatListModel().clear();
+						chattingClient.getChatListModel().addAll(roomTitleList);
 						
-						if(responseDto.getStatus().equalsIgnoreCase("no")) {
-							JOptionPane.showMessageDialog(null, "RoomTitle already exists", "Duplicate RoomTitle", JOptionPane.ERROR_MESSAGE);
-							break;
-						} else if(responseDto.getStatus().equalsIgnoreCase("ok")) {
-							chattingClient.getMainCard().show(chattingClient.getMainPanel(), "chatPanel");
-							break;
-						}
 						break;
+					case "createSuccess" :
+						String roomName = responseDto.getBody();
+						chattingClient.getRoomTitle().setText(roomName); //이구간이 말썽..~~!~!!~!~!~!~!
+						chattingClient.getMainCard().show(chattingClient.getMainPanel(), "chatPanel");
+						System.out.println("test");
+						break;
+						
+//						System.out.println("recive create room");
+//						RoomRespDto roomRespDto = gson.fromJson(responseDto.getBody(), RoomRespDto.class);
+//						System.out.println(responseDto.getStatus());
+//						
+//						if(responseDto.getStatus().equalsIgnoreCase("no")) {
+//							JOptionPane.showMessageDialog(null, "RoomTitle already exists", "Duplicate RoomTitle", JOptionPane.ERROR_MESSAGE);
+//							break;
+//						} else if(responseDto.getStatus().equalsIgnoreCase("ok")) {
+//							chattingClient.getMainCard().show(chattingClient.getMainPanel(), "chatPanel");
+//							break;
+//						}
+//						break;
 						
 						
 //					case "sendMessage":
 //						MessageRespDto messageRespDto = gson.fromJson(responseDto.getBody(), MessageRespDto.class);
 //						ChattingClient.getInstance().getContentView().append(messageRespDto.getMessageValue() + "\n");
+					
+						
 				}
 			}
 			
@@ -79,4 +91,5 @@ public class ClientRecive extends Thread{
 		}
 		
 	}
+	
 }
