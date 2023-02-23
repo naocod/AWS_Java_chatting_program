@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import com.google.gson.Gson;
 
 import Dto.LoginRespDto;
+import Dto.MessageRespDto;
 import Dto.ResponseDto;
 import lombok.RequiredArgsConstructor;
 
@@ -36,50 +37,47 @@ public class ClientRecive extends Thread{
 				String request = in.readLine();
 				ResponseDto responseDto = gson.fromJson(request, ResponseDto.class);
 				switch (responseDto.getResource()) {
+				
 					case "login":
-						System.out.println("recive login");
-						LoginRespDto loginRespDto = gson.fromJson(responseDto.getBody(), LoginRespDto.class);
-						System.out.println(responseDto.getStatus());
+//						System.out.println("recive login");
+						LoginRespDto loginRespDto = gson.fromJson(responseDto.getBody(), LoginRespDto.class); // ?????????
+//						System.out.println(responseDto.getStatus());
 
 						if(responseDto.getStatus().equalsIgnoreCase("no")) {
-							JOptionPane.showMessageDialog(null, "Username already exists", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
-
+							JOptionPane.showMessageDialog(null, "Username already exists", "알림", JOptionPane.ERROR_MESSAGE);
 							break;
 						} else if(responseDto.getStatus().equalsIgnoreCase("ok")) {
 							chattingClient.getMainCard().show(chattingClient.getMainPanel(), "roomListPanel");
 							break;
 						}
 						break;
-					case "reflshRoom":
+						
+					case "reflashRoom":
 						List<String> roomTitleList = gson.fromJson(responseDto.getBody(), List.class);
-						chattingClient.getChatListModel().clear();
-						chattingClient.getChatListModel().addAll(roomTitleList);
+						System.out.print("chatListModel: ");
+						System.out.println(roomTitleList);
+						chattingClient.getRoomListModel().clear();
+						chattingClient.getRoomListModel().addAll(roomTitleList);
 						
 						break;
+						
 					case "createSuccess" :
-						String roomName = responseDto.getBody();
-						chattingClient.getRoomTitle().setText(roomName); //이구간이 말썽..~~!~!!~!~!~!~!
+						String roomTitleText = responseDto.getBody();
+						System.out.println(roomTitleText);
+						chattingClient.getRoomTitleHead().setText("제목: " + roomTitleText);
 						chattingClient.getMainCard().show(chattingClient.getMainPanel(), "chatPanel");
-						System.out.println("test");
+//						System.out.println(roomTitleText + "방이 생성되었습니다.");
+						chattingClient.getChatView().append(roomTitleText + "을(를) 생성하였습니다.\n");
 						break;
 						
-//						System.out.println("recive create room");
-//						RoomRespDto roomRespDto = gson.fromJson(responseDto.getBody(), RoomRespDto.class);
-//						System.out.println(responseDto.getStatus());
-//						
-//						if(responseDto.getStatus().equalsIgnoreCase("no")) {
-//							JOptionPane.showMessageDialog(null, "RoomTitle already exists", "Duplicate RoomTitle", JOptionPane.ERROR_MESSAGE);
-//							break;
-//						} else if(responseDto.getStatus().equalsIgnoreCase("ok")) {
-//							chattingClient.getMainCard().show(chattingClient.getMainPanel(), "chatPanel");
-//							break;
-//						}
-//						break;
+					case "join" :
+						String joinUsername = responseDto.getBody();
+						System.out.println("joinUsername" + joinUsername);
 						
-						
-//					case "sendMessage":
-//						MessageRespDto messageRespDto = gson.fromJson(responseDto.getBody(), MessageRespDto.class);
-//						ChattingClient.getInstance().getContentView().append(messageRespDto.getMessageValue() + "\n");
+					case "sendMessage":
+						MessageRespDto messageRespDto = gson.fromJson(responseDto.getBody(), MessageRespDto.class);
+						System.out.println(messageRespDto);
+						chattingClient.getChatView().append(messageRespDto.getMessageValue() + "\n");
 					
 						
 				}
