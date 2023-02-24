@@ -64,6 +64,7 @@ public class ChattingClient extends JFrame {
 	private JList<String> roomList;
 	private DefaultListModel<String> roomListModel;
 	private JTextArea roomTitleHead;
+	private String selectedRoom;
 
 	JTextArea chatView;
 
@@ -107,7 +108,7 @@ public class ChattingClient extends JFrame {
 
 		} catch (ConnectException e1) {
 			JOptionPane.showMessageDialog(null, "서버 접속 실패", "접속실패", JOptionPane.ERROR_MESSAGE);
-
+			System.exit(0);
 		} catch (UnknownHostException e2) {
 			e2.printStackTrace();
 		} catch (IOException e2) {
@@ -184,24 +185,7 @@ public class ChattingClient extends JFrame {
 		JScrollPane roomListScroll = new JScrollPane();
 		roomListScroll.setBounds(98, 0, 366, 761);
 		roomListPanel.add(roomListScroll);
-
-		/**
-		 * @ 방리스트 / 채팅방 선택
-		 */
-		roomListModel = new DefaultListModel<>();
-		roomList = new JList<String>(roomListModel);
-//		roomList.setSel
-		roomList.addListSelectionListener(new ListSelectionListener() {
-			
-			public void valueChanged(ListSelectionEvent e) {
-				String selectedRoom = (String) roomList.getSelectedValue();
-				
-				sendRequest("join", selectedRoom);
-				
-			}
-		});
-		roomListScroll.setViewportView(roomList);
-
+		
 		ImageIcon panelIcon2 = new ImageIcon(getClass().getResource("/icon/kakaotalk_sharing_btn_medium2.png"));
 		JLabel kakaoIcon2 = new JLabel(panelIcon2);
 		kakaoIcon2.setBounds(19, 36, 60, 53);
@@ -224,6 +208,53 @@ public class ChattingClient extends JFrame {
 		addRoomButton.setBackground(new Color(255, 255, 0));
 		addRoomButton.setBounds(33, 110, 31, 31);
 		roomListPanel.add(addRoomButton);
+
+		/**
+		 * @ 방리스트 / 채팅방 선택
+		 */
+//		roomListModel = new DefaultListModel<>();
+//		roomList = new JList<String>(roomListModel);
+//		roomList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//		roomList.addListSelectionListener(new ListSelectionListener() {
+//			
+//			public void valueChanged(ListSelectionEvent e) {
+//				String selectedRoom = (String) roomList.getSelectedValue();
+//				
+//				sendRequest("join", selectedRoom);
+//				
+//			}
+//		});
+//		roomListScroll.setViewportView(roomList);
+//		roomList.setEnabled(false);
+		
+		roomListModel = new DefaultListModel<>();
+		roomList = new JList<String>(roomListModel);
+		roomList.setFont(new Font("카카오 Regular", Font.PLAIN, 20));
+		roomListScroll.setViewportView(roomList);
+
+		
+//		roomList.addListSelectionListener(new ListSelectionListener() {
+//		    public void valueChanged(ListSelectionEvent e) {
+//		        if (!e.getValueIsAdjusting()) {
+//		            selectedRoom = (String) roomList.getSelectedValue();
+//		            // TODO: selectedRoomName 변수를 이용하여 메시지를 보낼 방을 선택
+//		            sendRequest("join", selectedRoom);
+//		        }
+//		    }
+//		});
+		roomList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        roomList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int index = roomList.locationToIndex(e.getPoint());
+                    if (index != -1) {
+                    	goToRoom();
+                    }
+                }
+            }
+        });
+
 
 		JPanel chatPanel = new JPanel();
 		chatPanel.setBackground(new Color(255, 235, 0));
@@ -250,7 +281,7 @@ public class ChattingClient extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					sendMessage();
+					sendMessage(selectedRoom);
 				}
 			}
 		});
@@ -265,13 +296,13 @@ public class ChattingClient extends JFrame {
 		sendButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				sendMessage();
+				sendMessage(selectedRoom);
 			}
 		});
       sendButton.setBorderPainted(false);
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				sendMessage();
+				sendMessage(selectedRoom);
 			}
 		});
 		sendButton.setBackground(new Color(255, 255, 255));
@@ -313,20 +344,17 @@ public class ChattingClient extends JFrame {
 			e.printStackTrace();
 		}
 	}
-
-	public void sendMessage() {
-		if (!messageInput.getText().isBlank()) {
-
-//			String toUser = userList.getSelectedIndex() == 0 ? "all" : userList.getSelectedValue();
-
-			MessageReqDto messageReqDto = new MessageReqDto(messageInput.getText());
-
-			sendRequest("sendMessage", gson.toJson(messageReqDto));
-			messageInput.setText("");
-		}
+	
+	// TODO : sendMessage
+	public void sendMessage(String selectedRoomName) {
+	    if (!messageInput.getText().isBlank()) {
+	        MessageReqDto messageReqDto = new MessageReqDto(selectedRoomName, messageInput.getText());
+	        sendRequest("sendMessage", gson.toJson(messageReqDto));
+	        messageInput.setText("");
+	    }
 	}
 
-	// TODO : sendMessage
+	
 	private void login() {
 		// TODO : save username
 		username = usernameField.getText();
@@ -348,6 +376,20 @@ public class ChattingClient extends JFrame {
 		ClientRecive clientRecive = new ClientRecive(socket);
 		clientRecive.start();
 
+	}
+	
+	private void goToRoom() {
+	    if (roomList.getSelectedIndex() != -1) { // 선택한 방이 있다면
+	        selectedRoom = roomList.getSelectedValue(); // 선택한 방의 이름 저장
+	        roomTitleHead.setText("제목: " + selectedRoom); // 방 제목 수정
+	        mainCard.show(mainPanel, "chatPanel"); // 채팅방 패널로 이동
+	        username = getUsername();
+
+	        // 서버로 해당 방으로 입장하라는 요청(RequestDto) 보내기
+//	        RequestDto request = new RequestDto("join", selectedRoom);
+//	        sendMessage(gson.toJson(request));
+	        sendRequest("join", selectedRoom);
+	    }
 	}
 
 }
